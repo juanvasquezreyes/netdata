@@ -1565,8 +1565,16 @@ RRDR *rrd2rrdr(
     time_t first_entry_t;
     time_t last_entry_t;
     if (temp_rd) {
-        first_entry_t = rrddim_first_entry_t(temp_rd);
-        last_entry_t = rrddim_last_entry_t(temp_rd);
+        first_entry_t = LONG_MAX;
+        last_entry_t = 0;
+        RRDDIM *rd = temp_rd;
+        //Note: this is a quick fix because we may query charts multiple times
+        //TODO: Query charts only once
+        while (rd) {
+            first_entry_t = MIN(first_entry_t, rrdset_first_entry_t(rd->rrdset));
+            last_entry_t = MAX(last_entry_t, rrdset_last_entry_t(rd->rrdset));
+            rd = rd->next;
+        }
     } else {
         first_entry_t = rrdset_first_entry_t(st);
         last_entry_t = rrdset_last_entry_t(st);
